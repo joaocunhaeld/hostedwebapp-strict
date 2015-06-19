@@ -31,6 +31,7 @@
     };
 
     app.onready = function (args) {
+        // check if is another url (loaded from a secondary tile)
         if (url !== window.location.href) {
             document.location.href = url;
         }
