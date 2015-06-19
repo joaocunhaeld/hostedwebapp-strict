@@ -1,9 +1,4 @@
 ﻿function setWinJS() {
-    var winjsfile = document.createElement("script");
-    winjsfile.type = "application/javascript";
-    winjsfile.src = "ms-appx-web:///WinJS/js/WinJS.js";
-    document.body.appendChild(winjsfile);
-
     var cssFile = document.createElement("link");
     cssFile.rel = "stylesheet";
     cssFile.type = "text/css";
@@ -11,31 +6,29 @@
     cssFile.media = "all";
     document.head.appendChild(cssFile);
     
-    winjsfile.onload = function (args) {
+    WinJS.UI.Animation.fadeOut(WinJS.Utilities.query(".loadingContent").get(0)).then(function (args) {
+        WinJS.Utilities.query(".loadingContent").get(0).style.zIndex = -1;
+    });
+
+    window.onloadstart = (function (args) {
+        WinJS.UI.Animation.fadeIn(WinJS.Utilities.query(".loadingContent").get(0)).then(function (args) {
+            WinJS.Utilities.query(".loadingContent").get(0).style.zIndex = 999;
+        });
+    });
+
+    window.onload = (function (args) {
         WinJS.UI.Animation.fadeOut(WinJS.Utilities.query(".loadingContent").get(0)).then(function (args) {
             WinJS.Utilities.query(".loadingContent").get(0).style.zIndex = -1;
         });
+    });
 
-        window.onloadstart = (function (args) {
-            WinJS.UI.Animation.fadeIn(WinJS.Utilities.query(".loadingContent").get(0)).then(function (args) {
-                WinJS.Utilities.query(".loadingContent").get(0).style.zIndex = 999;
-            });
+    window.onerror = (function (args) {
+        WinJS.UI.Animation.fadeOut(WinJS.Utilities.query(".loadingContent").get(0)).then(function (args) {
+            WinJS.Utilities.query(".loadingContent").get(0).style.zIndex = -1;
         });
+    });
 
-        window.onload = (function (args) {
-            WinJS.UI.Animation.fadeOut(WinJS.Utilities.query(".loadingContent").get(0)).then(function (args) {
-                WinJS.Utilities.query(".loadingContent").get(0).style.zIndex = -1;
-            });
-        });
-
-        window.onerror = (function (args) {
-            WinJS.UI.Animation.fadeOut(WinJS.Utilities.query(".loadingContent").get(0)).then(function (args) {
-                WinJS.Utilities.query(".loadingContent").get(0).style.zIndex = -1;
-            });
-        });
-
-        addAppBar();
-    };
+    addAppBar();
 
     document.body.role = "application";
     document.body.style.overflowX = "auto";    
