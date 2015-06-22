@@ -25,7 +25,10 @@
                 }
                 else {
                     url = window.location.href;
-                }           
+                }
+
+                registerTask();
+                setPictures();
             }));
         }
     };
@@ -237,4 +240,152 @@
 
         return appbarTileId.replace(new RegExp(/[\|\\"\/<>\?\;\:\!']/g), "-");
     }
+    
+    function registerTask()    {
+        var taskRegistered = false;
+        var exampleTaskName = "backgroundTask";
+
+        var background = Windows.ApplicationModel.Background;
+        var iter = background.BackgroundTaskRegistration.allTasks.first();
+
+        while (iter.hasCurrent) {
+
+            var task = iter.current.value;
+
+            if (task.name === exampleTaskName) {
+
+                taskRegistered = true;
+                break;
+            }
+
+            iter.moveNext();
+        }
+
+        if (taskRegistered != true) {
+            var builder = new Windows.ApplicationModel.Background.BackgroundTaskBuilder();
+            var trigger = new Windows.ApplicationModel.Background.TimeTrigger(15, true);
+
+            builder.name = exampleTaskName;
+            builder.taskEntryPoint = "js\\backgroundTask.js";
+            builder.setTrigger(trigger);
+
+            builder.addCondition(new Windows.ApplicationModel.Background.SystemCondition(Windows.ApplicationModel.Background.SystemConditionType.internetAvailable));
+            var task = builder.register();
+            task.addEventListener("completed", backgroundTaskCompleted);
+        }
+    }
+
+    function backgroundTaskCompleted(args) {
+        try {
+            var applicationData = Windows.Storage.ApplicationData.current;
+            var localSettings = applicationData.localSettings;
+
+            var currentPhoto = localSettings.values["currentPhoto"];
+            var photoPath = localSettings.values["photo_" + currentPhoto];
+
+            var pictures = $("#photos div");
+            for (var i = 0; i < pictures.length; i++) {
+                if (i == currentPhoto) {
+                    pictures[i].style["border"] = "solid 5px blue";
+                }
+                else {
+                    pictures[i].style["border"] = 0;
+                }
+            }
+        } catch (ex) {
+            //WinJS.log && WinJS.log(ex, "sample", "status");
+        }
+    }
+
+    function handleAction() {
+        console.log("we're on windows 10");
+        var picker = new Windows.Storage.Pickers.FileOpenPicker();
+        picker.viewMode = Windows.Storage.Pickers.PickerViewMode.thumbnail;
+        picker.suggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.picturesLibrary;
+        picker.fileTypeFilter.replaceAll([".jpg", ".jpeg", ".png", ".bmp"]);
+
+        picker.pickMultipleFilesAsync().done(function (files) {
+
+            if (files.size > 0) {
+                var file = files[0];
+
+                // Application now has read/write access to the picked file, setting image to lockscreen.
+                Windows.System.UserProfile.LockScreen.setImageFileAsync(file).done(function (imageSet) {
+                    console.log && console.log("File \"" + file.name + "\" set as lock screen image.", "sample", "status");
+                },
+                function (imageSet) {
+                    // Set Image promise failed.  Display failure message.
+                    console.log && console.log("Setting the lock screen image failed.  Make sure your copy of Windows is activated.", "sample", "error");
+                });
+
+                var applicationData = Windows.Storage.ApplicationData.current;
+                var localSettings = applicationData.localSettings;
+
+                localSettings.values["numberOfPhotos"] = files.length;
+                localSettings.values["currentPhoto"] = 0;
+
+                var localFolder = applicationData.localFolder;
+
+                for (var i = 0; i < files.size; i++) {
+                    var photoIndex = "photo_" + i;
+                    files[i].copyAsync(localFolder, files[i].name, Windows.Storage.NameCollisionOption.replaceExisting);
+                    localSettings.values[photoIndex] = files[i].name;
+                }
+
+                console.log && console.log("Placing pictures on page", "sample", "status");
+                setPictures();
+
+                console.log && console.log("The files has been set on settings.", "sample", "status");
+            }
+            else {
+                console.log && console.log("No file was selected using the picker.", "sample", "error");
+            }
+        });
+    }
+
+    function setPictures() {
+        var picturesDiv = document.getElementById("photos");
+        while (picturesDiv.firstChild) {
+            picturesDiv.removeChild(picturesDiv.firstChild);
+        }
+
+        var applicationData = Windows.Storage.ApplicationData.current;
+        var localSettings = applicationData.localSettings;
+        var localFolder = applicationData.localFolder;
+
+        var numberOfPhotos = localSettings.values["numberOfPhotos"];
+
+        for (var i = 0; i < numberOfPhotos; i++) {
+
+            var photoPath = localSettings.values["photo_" + i];
+            localFolder.getFileAsync(photoPath).done(function (file) {
+                var pictureDiv = document.createElement("div");
+                pictureDiv.style.height = "200px";
+                pictureDiv.className = "col-md-4";
+                pictureDiv.Id = file.name;
+
+                var image = document.createElement("img");
+                image.src = URL.createObjectURL(file, { oneTimeOnly: true });
+                image.style.width = "100%";
+
+                pictureDiv.appendChild(image);
+
+                picturesDiv.appendChild(pictureDiv);
+
+                var currentPhoto = localSettings.values["currentPhoto"];
+                var photoId = localSettings.values["photo_" + currentPhoto];
+
+                if (photoId == file.name) {
+                    pictureDiv.style["border"] = "solid 5px blue";
+                }
+            });
+        }
+    }
+
+    // exposes the private functions by using namespace
+    WinJS.Namespace.define("HostedWebApp", {
+        handleAction: handleAction
+    });
+
 })();
+

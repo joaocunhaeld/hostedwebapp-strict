@@ -45,8 +45,15 @@
       <uap:ApplicationContentUriRules>
         <uap:Rule Match="http://hostedwebapp.azurewebsites.net" Type="include" WindowsRuntimeAccess="all"/>
         <uap:Rule Match="ms-appx-web:///" Type="include" WindowsRuntimeAccess="all"/>
-      </uap:ApplicationContentUriRules>   
-      
+      </uap:ApplicationContentUriRules>
+
+      <Extensions>
+        <Extension Category="windows.backgroundTasks" StartPage="js\backgroundTask.js">
+          <BackgroundTasks>
+            <Task Type="timer"/>
+          </BackgroundTasks>
+        </Extension>
+      </Extensions>
     </Application>
   </Applications>
 
