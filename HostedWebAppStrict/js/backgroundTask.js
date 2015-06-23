@@ -16,7 +16,7 @@
     //
     function doWork() {
         var key = null,
-            settings = Windows.Storage.ApplicationData.current.localSettings;
+            localSettings = Windows.Storage.ApplicationData.current.localSettings;
         
         // Write JavaScript code here to do work in the background.
 
@@ -25,19 +25,19 @@
         // Record information in LocalSettings to communicate with the app.
         //
         key = backgroundTaskInstance.task.taskId.toString();
-        settings.values[key] = "Succeeded";
+        localSettings.values[key] = "Succeeded";
 
-        var currentPhoto = settings.values["currentPhoto"];
+        var currentPhoto = localSettings.values["currentPhoto"];
         var newPhoto = currentPhoto + 1;
-        var numberOfPhotos = settings.values["numberOfPhotos"];
+        var numberOfPhotos = localSettings.values["numberOfPhotos"];
 
         if (newPhoto >= numberOfPhotos) {
             newPhoto = 0;            
         }
 
-        settings.values["currentPhoto"] = newPhoto;
+        localSettings.values["currentPhoto"] = newPhoto;
         
-        var photoPath = settings.values["photo_" + newPhoto];
+        var photoPath = localSettings.values["photo_" + newPhoto];
 
         var applicationData = Windows.Storage.ApplicationData.current;
         var localFolder = applicationData.localFolder;
@@ -45,6 +45,8 @@
             console.log && console.log("File loaded.", "background", " status");
 
             Windows.System.UserProfile.LockScreen.setImageFileAsync(file).done(function (imageSet) {
+                localSettings.values["lastPhotoChange"] = new Date();
+
                 var msg = "File \"" + photoPath + "\" set as lock screen image.";
                 console.log && console.log(msg, "background", " status");
 

@@ -55,9 +55,6 @@
         cssFile.href = "ms-appx-web:///WinJS/css/ui-light.css";
         cssFile.media = "all";
         document.head.appendChild(cssFile);
-
-        document.body.role = "application";
-        document.body.style.overflowX = "auto"; 
     }
 
     function setLoading() {
@@ -87,6 +84,9 @@
 
         loadingContent.appendChild(progress);
         document.body.appendChild(loadingContent);
+        
+        document.body.role = "application";
+        document.body.style.overflowX = "auto";
 
         WinJS.UI.Animation.fadeOut(WinJS.Utilities.query(".loadingContent").get(0)).then(function (args) {
             WinJS.Utilities.query(".loadingContent").get(0).style.zIndex = -1;
@@ -275,6 +275,48 @@
         }
     }
 
+    function setTile() {
+
+        var applicationData = Windows.Storage.ApplicationData.current;
+        var localSettings = applicationData.localSettings;
+        var currentPhoto = localSettings.values["currentPhoto"];
+        var photoPath = localSettings.values["photo_" + currentPhoto];
+            
+        var lastPhotoChange = new Date(localSettings.values["lastPhotoChange"]);
+        var currentDate = new Date();
+        var nextPhotoChange = 15 - (currentDate.getUTCMinutes() - lastPhotoChange.getUTCMinutes());
+
+        for (var i = 0; i < nextPhotoChange; i++) {
+            updateTile(nextPhotoChange, i, photoPath);
+        }
+    }
+
+    function updateTile(nextPhotoChange, iteration, photoPath) {
+        var Notifications = Windows.UI.Notifications;
+
+        var tileXml = Notifications.TileUpdateManager.getTemplateContent(Notifications.TileTemplateType.tileSquare150x150PeekImageAndText02);
+        var tileTextAttributes = tileXml.getElementsByTagName("text");
+        tileTextAttributes[0].appendChild(tileXml.createTextNode("Next BG in"));
+        tileTextAttributes[1].appendChild(tileXml.createTextNode((nextPhotoChange - iteration) + " minutes"));
+
+        var tileImageAttributes = tileXml.getElementsByTagName("image");
+        tileImageAttributes[0].setAttribute("src", "ms-appdata://local/" + photoPath);
+        tileImageAttributes[0].setAttribute("alt", "current bg");
+
+        if (iteration == 0) {
+            var tileNotification = new Windows.UI.Notifications.TileNotification(tileXml);
+            Notifications.TileUpdateManager.createTileUpdaterForApplication().update(tileNotification);
+        }
+        else {
+            var dueDate = new Date();
+            dueDate = new Date(dueDate.getTime() + iteration * 60000);
+
+            var futureTile = new Notifications.ScheduledTileNotification(tileXml, dueDate);
+            Notifications.TileUpdateManager.createTileUpdaterForApplication().addToSchedule(futureTile);
+        }
+    }
+
+
     function backgroundTaskCompleted(args) {
         try {
             var applicationData = Windows.Storage.ApplicationData.current;
@@ -292,6 +334,9 @@
                     pictures[i].style["border"] = 0;
                 }
             }
+
+            // Todo fix update tile with image
+            //setTile();
         } catch (ex) {
             //WinJS.log && WinJS.log(ex, "sample", "status");
         }
@@ -311,7 +356,12 @@
 
                 // Application now has read/write access to the picked file, setting image to lockscreen.
                 Windows.System.UserProfile.LockScreen.setImageFileAsync(file).done(function (imageSet) {
+                    localSettings.values["lastPhotoChange"] = new Date();
+
                     console.log && console.log("File \"" + file.name + "\" set as lock screen image.", "sample", "status");
+
+                    // Todo fix update tile with image
+                    //setTile();
                 },
                 function (imageSet) {
                     // Set Image promise failed.  Display failure message.
@@ -333,6 +383,7 @@
                 }
 
                 console.log && console.log("Placing pictures on page", "sample", "status");
+                // Todo wait copy of images to local folder before set pictures
                 setPictures();
 
                 console.log && console.log("The files has been set on settings.", "sample", "status");
