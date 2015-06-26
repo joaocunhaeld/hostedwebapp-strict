@@ -1,0 +1,55 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Package
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+  xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest"
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  IgnorableNamespaces="uap mp">
+
+  <Identity
+    Name="5cf5a02a-16a7-47b9-98d0-82fa856d2af9"
+    Version="1.0.0.0"
+    Publisher="CN=eldorado" />
+
+  <mp:PhoneIdentity PhoneProductId="5cf5a02a-16a7-47b9-98d0-82fa856d2af9" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
+
+  <Properties>
+    <DisplayName>MyHostedWebApp</DisplayName>
+    <PublisherDisplayName>eldorado</PublisherDisplayName>
+    <Logo>images\storelogo.png</Logo>
+  </Properties>
+
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Universal" MinVersion="10.0.10069.0" MaxVersionTested="10.0.10069.0" />
+  </Dependencies>
+
+  <Resources>
+    <Resource Language="x-generate" />
+  </Resources>
+
+  <Applications>
+    <Application
+      Id="App"
+      StartPage="http://talkitbr.com">
+
+      <uap:VisualElements
+        DisplayName="MyHostedWebApp"
+        Description="MyHostedWebApp"
+        BackgroundColor="#464646"
+        Square150x150Logo="images\Logo.png"
+        Square44x44Logo="images\SmallLogo.png">
+
+        <uap:SplashScreen Image="images\splashscreen.png" />
+        
+      </uap:VisualElements>
+
+      <uap:ApplicationContentUriRules>
+        <uap:Rule Match="http://talkitbr.com" Type="include"/>
+      </uap:ApplicationContentUriRules>
+    </Application>
+  </Applications>
+
+  <Capabilities>
+    <Capability Name="internetClient" />
+  </Capabilities>
+
+</Package>

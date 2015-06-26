@@ -293,14 +293,14 @@
 
     function updateTile(nextPhotoChange, iteration, photoPath) {
         var Notifications = Windows.UI.Notifications;
+        var tileXml = Notifications.TileUpdateManager.getTemplateContent(Notifications.TileTemplateType.tileSquarePeekImageAndText02);
 
-        var tileXml = Notifications.TileUpdateManager.getTemplateContent(Notifications.TileTemplateType.tileSquare150x150PeekImageAndText02);
         var tileTextAttributes = tileXml.getElementsByTagName("text");
         tileTextAttributes[0].appendChild(tileXml.createTextNode("Next BG in"));
         tileTextAttributes[1].appendChild(tileXml.createTextNode((nextPhotoChange - iteration) + " minutes"));
 
         var tileImageAttributes = tileXml.getElementsByTagName("image");
-        tileImageAttributes[0].setAttribute("src", "ms-appdata://local/" + photoPath);
+        tileImageAttributes[0].setAttribute("src", "ms-appdata:///local/" + photoPath);
         tileImageAttributes[0].setAttribute("alt", "current bg");
 
         if (iteration == 0) {
@@ -336,7 +336,7 @@
             }
 
             // Todo fix update tile with image
-            //setTile();
+            setTile();
         } catch (ex) {
             //WinJS.log && WinJS.log(ex, "sample", "status");
         }
@@ -361,7 +361,7 @@
                     console.log && console.log("File \"" + file.name + "\" set as lock screen image.", "sample", "status");
 
                     // Todo fix update tile with image
-                    //setTile();
+                    setTile();
                 },
                 function (imageSet) {
                     // Set Image promise failed.  Display failure message.
